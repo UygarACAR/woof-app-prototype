@@ -47,7 +47,7 @@
       <div class="count">${pad(n)}<span> / ${total}</span></div>
       <span class="lbl">${s.group}</span>
       <h2>${s.title}</h2>
-      <p class="cap">${caption}</p>
+      <p class="s-cap">${caption}</p>
       ${next ? `<p class="hint">Next: ${next}</p>` : ""}
       <div class="btns"><button data-step="-1">← Previous</button><button data-step="1">${n === total ? "Start again" : "Next →"}</button></div>
       <a class="video" href="${VIDEO}" target="_blank" ${VIDEO ? "" : "hidden"}><i></i>Watch the walkthrough video</a>
