@@ -90,26 +90,42 @@ function capsulePath(W, H, inset) {
   return `M${f(x + w / 2)} ${f(y)}H${f(x + w - rx)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x + w)} ${f(y + ry)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x + w - rx)} ${f(y + h)}H${f(x + rx)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x)} ${f(y + ry)}A${f(rx)} ${f(ry)} 0 0 1 ${f(x + rx)} ${f(y)}Z`;
 }
 
-function capsule({ w = 240, h = 139, value = 0, stroke = 7, color = "var(--ink)", track = "var(--track)", label = "", text = null, size = 64, glow = false, sub = "" } = {}) {
+/* ---------- Halo blue: the one accent ----------
+   Progress glows halo blue, like the light on the module. Red is kept for alerts. */
+const HALO = "var(--halo-blue)";
+
+// A meter filled in halo blue.
+const haloMeter = (pct) => `<div class="meter"><b style="width:${pct}%;background:${HALO}"></b></div>`;
+
+/* The capsule. halo: the progress glows halo blue, like the light on the module.
+   logo: the WOOF wordmark sits inside, as it does on the module. unit: a small suffix such as "%". */
+function capsule({ w = 240, h = 139, value = 0, stroke = 7, color = "var(--ink)", track = "var(--track)", label = "", text = null, size = 64, glow = false, halo = false, logo = 0, unit = "", sub = "" } = {}) {
   const d = capsulePath(w, h, stroke / 2 + 1);
   const id = `g${Math.random().toString(36).slice(2, 7)}`;
+  // A full capsule is drawn closed, so there is no join where the ends meet.
+  const arc = (c, width) => value >= 100
+    ? `<path d="${d}" fill="none" stroke="${c}" stroke-width="${width}"/>`
+    : `<path d="${d}" fill="none" stroke="${c}" stroke-width="${width}" pathLength="100" stroke-dasharray="${value} 100" stroke-linecap="round"/>`;
+  const progress = halo
+    ? `<g filter="url(#${id})" opacity=".55">${arc(HALO, stroke + 4)}</g>${arc(HALO, stroke)}`
+    : `${glow ? `<g filter="url(#${id})" opacity=".85">${arc(color, stroke + 2)}</g>` : ""}${arc(color, stroke)}`;
   return `
   <div class="cap" style="width:${w}px;height:${h}px">
     <svg viewBox="0 0 ${w} ${h}">
-      ${glow ? `<defs><filter id="${id}" x="-20%" y="-30%" width="140%" height="160%"><feGaussianBlur stdDeviation="4"/></filter></defs>` : ""}
+      ${halo || glow ? `<defs><filter id="${id}" x="-25%" y="-40%" width="150%" height="180%"><feGaussianBlur stdDeviation="${halo ? stroke * .75 : 4}"/></filter></defs>` : ""}
       <path d="${d}" fill="none" stroke="${track}" stroke-width="${stroke}"/>
-      ${glow ? `<path d="${d}" fill="none" stroke="${color}" stroke-width="${stroke + 2}" pathLength="100" stroke-dasharray="${value} 100" stroke-linecap="round" filter="url(#${id})" opacity=".85"/>` : ""}
-      ${value > 0 ? `<path d="${d}" fill="none" stroke="${color}" stroke-width="${stroke}" pathLength="100" stroke-dasharray="${value} 100" stroke-linecap="round"/>` : ""}
+      ${value > 0 ? progress : ""}
     </svg>
     <div class="cap__in">
-      <div class="cap__v" style="font-size:${size}px">${text ?? value}</div>
+      ${logo ? `<img class="cap__logo" src="${ASSETS}logo/woof.svg" alt="WOOF" style="height:${logo}px">` : ""}
+      <div class="cap__v" style="font-size:${size}px">${text ?? value}${unit ? `<span class="cap__u">${unit}</span>` : ""}</div>
       ${label ? `<div class="cap__l">${label}</div>` : ""}
       ${sub}
     </div>
   </div>`;
 }
 
-/* ---------- Charts (monochrome; the halo colours are reserved for state) ---------- */
+/* ---------- Charts (monochrome: halo blue is kept for progress and friends, red for alerts) ---------- */
 
 function lineBand({ values, lo, hi, w = 321, h = 92, min, max, flagHigh = false, dots = true, color = "var(--ink)" }) {
   min = min ?? Math.min(lo, ...values) - 2;

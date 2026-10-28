@@ -175,7 +175,7 @@ def("fit", "Onboarding", "Fit check",
         <div class="driver"><span class="driver__ico flat" style="background:var(--mist);color:#111">2</span><div><b>Snug, not tight</b><span>Two fingers should slide under the band.</span></div><span></span></div>
       </div>
       <div class="card" style="display:flex;align-items:center;gap:16px;margin-top:12px">
-        ${capsule({ w: 74, h: 43, value: 100, stroke: 4, text: icon("check", 20), size: 16 })}
+        ${capsule({ w: 74, h: 43, value: 100, stroke: 4, halo: true, text: icon("check", 20), size: 16 })}
         <div style="flex:1"><p class="h3">Good signal</p><p class="small" style="margin-top:2px">Woof could read Milo's breathing in 4 of 4 still moments.</p></div>
       </div>
     </div>
@@ -201,7 +201,7 @@ def("ready", "Onboarding", "Learning period",
   "",
   () => screen({ id: "ready", body: `
     <div class="pad" style="margin-top:30px">
-      <div style="display:flex;justify-content:center">${capsule({ w: 150, h: 87, value: 7, stroke: 5, text: "14", size: 38, label: "days" })}</div>
+      <div style="display:flex;justify-content:center">${capsule({ w: 172, h: 100, value: 7, stroke: 5, halo: true, logo: 7, text: "14", size: 30, label: "days" })}</div>
       <h1 class="h1" style="margin-top:26px;text-align:center">Now we get<br>to know Milo.</h1>
       <p class="small" style="margin-top:10px;font-size:14px;text-align:center;padding:0 12px">Every dog has their own normal. Woof needs about two weeks of wear to learn his.</p>
       <div style="margin-top:26px;position:relative;padding-left:30px">
@@ -227,7 +227,7 @@ def("today-learning", "Today", "Today · learning",
   () => screen({ id: "today-learning", tabs: "today", body: `
     ${header("Monday 19 October", "Milo")}
     <div style="display:flex;flex-direction:column;align-items:center;margin-top:22px">
-      ${capsule({ w: 230, h: 133, value: 43, stroke: 7, text: '6<span style="font-size:24px;color:var(--faint);letter-spacing:-.02em"> /14</span>', size: 60, label: "Days learning" })}
+      ${capsule({ w: 236, h: 137, value: 43, stroke: 7, halo: true, logo: 8, unit: "%", size: 42, label: "Day 6 of 14" })}
       <p class="small" style="margin-top:14px">Getting to know Milo</p>
     </div>
     <div class="pad" style="margin-top:20px">
@@ -255,7 +255,7 @@ def("today", "Today", "Today",
   () => screen({ id: "today", tabs: "today", body: `
     ${header("Thursday 12 November", "Milo")}
     <div style="display:flex;flex-direction:column;align-items:center;margin-top:20px" data-go="score">
-      ${capsule({ w: 236, h: 137, value: 86, stroke: 7, size: 66, label: "Daily score" })}
+      ${capsule({ w: 236, h: 137, value: 86, stroke: 7, halo: true, logo: 8, unit: "%", size: 42, label: "Daily score" })}
       <p class="small" style="margin-top:14px"><span class="up" style="font-weight:600">↑ 5</span> above his 7-day average</p>
     </div>
     <div style="display:flex;justify-content:center;gap:8px;margin-top:14px">
@@ -268,8 +268,8 @@ def("today", "Today", "Today",
         <p style="margin-top:12px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px">Why 86 ${icon("arrow", 15)}</p>
       </div>
       <div class="grid2" style="margin-top:10px">
-        <div class="card" data-go="rest"><p class="lbl">Rest · 24 h</p><p class="mid" style="margin-top:10px">11<small>h</small> 20<small>m</small></p><div class="meter" style="margin-top:12px"><b style="width:88%"></b></div><p class="tiny" style="margin-top:8px">Above his usual</p></div>
-        <div class="card" data-go="activity"><p class="lbl">Activity · Wed</p><p class="mid" style="margin-top:10px">74<small>min</small></p><div class="meter" style="margin-top:12px"><b style="width:82%"></b></div><p class="tiny" style="margin-top:8px">16 min under target</p></div>
+        <div class="card" data-go="rest"><p class="lbl">Rest · 24 h</p><p class="mid" style="margin-top:10px">11<small>h</small> 20<small>m</small></p><div style="margin-top:12px">${haloMeter(88)}</div><p class="tiny" style="margin-top:8px">Above his usual</p></div>
+        <div class="card" data-go="activity"><p class="lbl">Activity · Wed</p><p class="mid" style="margin-top:10px">74<small>min</small></p><div style="margin-top:12px">${haloMeter(82)}</div><p class="tiny" style="margin-top:8px">16 min under target</p></div>
       </div>
       <div class="card" data-go="vitals">
         <p class="lbl">Vitals · Last night</p>
@@ -287,7 +287,7 @@ def("score", "Today", "Why this score",
   () => screen({ id: "score", body: `
     ${navBar({ back: "Today", backTo: "today", title: "Daily score" })}
     <div style="display:flex;flex-direction:column;align-items:center;margin-top:12px">
-      ${capsule({ w: 176, h: 102, value: 86, stroke: 6, size: 50 })}
+      ${capsule({ w: 176, h: 102, value: 86, stroke: 6, halo: true, logo: 7, unit: "%", size: 32 })}
       <p class="small" style="margin-top:12px">Thursday 12 November · above his usual</p>
     </div>
     <div class="pad">
@@ -342,7 +342,7 @@ def("activity", "Today", "Activity",
     ${navBar({ back: "Today", backTo: "today", title: "Activity" })}
     <div class="pad" style="margin-top:6px">
       <div style="display:flex;align-items:center;gap:18px">
-        ${capsule({ w: 132, h: 77, value: 82, stroke: 6, size: 34, text: "74", label: "min" })}
+        ${capsule({ w: 132, h: 77, value: 82, stroke: 6, halo: true, size: 28, text: "74", label: "min" })}
         <div><p class="lbl">Yesterday · Wed 11 Nov</p><p style="font-size:18px;font-weight:500;margin-top:6px;letter-spacing:-.02em">16 min under target</p><p class="small" style="margin-top:2px">His daily target is 90 min</p></div>
       </div>
       <div class="card" style="margin-top:18px">
