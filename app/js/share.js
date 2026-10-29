@@ -11,6 +11,9 @@
   const VIDEO = document.body.dataset.video || "";
   let mode = null;
   let current = null;
+  // Light or dark: the viewer's choice, else their system setting (as the real app would).
+  const saved = (() => { try { return localStorage.getItem("woof-theme"); } catch { return null; } })();
+  let theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 
   const groups = [...new Set(SCREENS.map((s) => s.group))];
   $("side").innerHTML = `
@@ -40,6 +43,8 @@
     const next = SCREENS[n] ? SCREENS[n].title : "";
     current = s.id;
     mode = isPhone();
+    THEME = theme;
+    document.body.classList.toggle("is-dark", theme === "dark");
     $("scaler").innerHTML = mode ? `<div class="bare">${s.render()}</div>` : device(s.render(), "device--shadow");
     document.querySelectorAll(".grp a").forEach((a) => a.classList.toggle("is-on", a.dataset.id === s.id));
     document.querySelector(".grp a.is-on")?.scrollIntoView({ block: "nearest" });
@@ -50,6 +55,7 @@
       <p class="s-cap">${caption}</p>
       ${next ? `<p class="hint">Next: ${next}</p>` : ""}
       <div class="btns"><button data-step="-1">← Previous</button><button data-step="1">${n === total ? "Start again" : "Next →"}</button></div>
+      <div class="seg themes"><span data-theme="light" class="${theme === "light" ? "is-on" : ""}">Light</span><span data-theme="dark" class="${theme === "dark" ? "is-on" : ""}">Dark</span></div>
       <a class="video" href="${VIDEO}" target="_blank" ${VIDEO ? "" : "hidden"}><i></i>Watch the walkthrough video</a>
       <p class="fine">Woof is a wellness product, not a medical device. Prototype: the dog, people and numbers are examples.</p>`;
     $("bar").innerHTML = `
@@ -67,8 +73,13 @@
   };
 
   document.addEventListener("click", (e) => {
-    const t = e.target.closest("[data-go],[data-back],[data-step]");
+    const t = e.target.closest("[data-go],[data-back],[data-step],[data-theme]");
     if (!t) return;
+    if (t.dataset.theme) {
+      theme = t.dataset.theme;
+      try { localStorage.setItem("woof-theme", theme); } catch { /* private mode */ }
+      return show(current);
+    }
     if (t.dataset.go) location.hash = t.dataset.go;
     else if (t.dataset.step) step(Number(t.dataset.step));
     else history.back();
@@ -76,6 +87,7 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") step(1);
     if (e.key === "ArrowLeft") step(-1);
+    if (e.key === "d" || e.key === "D") { theme = theme === "dark" ? "light" : "dark"; show(current); }
   });
   // Horizontal swipe on phones; vertical drags still scroll the screen.
   let sx = 0, sy = 0;

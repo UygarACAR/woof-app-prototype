@@ -5,6 +5,9 @@
 const ASSETS = new URL("../../assets/", document.currentScript.src).href;
 const A = ASSETS + "img";
 
+// "light" or "dark". Pages set it before rendering; every screen picks up the matching tokens.
+let THEME = "light";
+
 const I = {
   // tab bar
   today: '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 6.5h4.2a6.3 6.5 0 0 1 0 13H8.8a6.3 6.5 0 0 1 0-13z"/></svg>',
@@ -12,7 +15,7 @@ const I = {
   trends: '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18.5 9.5 13l4 3 8.5-9"/><path d="M4 22h18"/></svg>',
   map: '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 22.5s-6.5-6-6.5-11.3a6.5 6.5 0 0 1 13 0C19.5 16.5 13 22.5 13 22.5z"/><circle cx="13" cy="11.2" r="2.4"/></svg>',
   ask: '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M5.5 19.5V8.5a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v6.5a3 3 0 0 1-3 3H9.2z"/><path d="M10 11.5h6M10 14.5h3.5" stroke-linecap="round"/></svg>',
-  woof: '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="13" cy="15" rx="9" ry="6.5"/><rect x="8.5" y="5.5" width="9" height="6" rx="3" fill="#fff"/></svg>',
+  woof: '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="13" cy="15" rx="9" ry="6.5"/><rect x="8.5" y="5.5" width="9" height="6" rx="3" fill="var(--tabbar-fill)"/></svg>',
   // general
   back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>',
   chev: '<svg class="row__chev" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m1.5 1.5 5 5-5 5"/></svg>',
@@ -117,7 +120,7 @@ function capsule({ w = 240, h = 139, value = 0, stroke = 7, color = "var(--ink)"
       ${value > 0 ? progress : ""}
     </svg>
     <div class="cap__in">
-      ${logo ? `<img class="cap__logo" src="${ASSETS}logo/woof.svg" alt="WOOF" style="height:${logo}px">` : ""}
+      ${logo ? `<img class="cap__logo" src="${ASSETS}logo/${THEME === "dark" ? "woof-white" : "woof"}.svg" alt="WOOF" style="height:${logo}px">` : ""}
       <div class="cap__v" style="font-size:${size}px">${text ?? value}${unit ? `<span class="cap__u">${unit}</span>` : ""}</div>
       ${label ? `<div class="cap__l">${label}</div>` : ""}
       ${sub}
@@ -128,23 +131,34 @@ function capsule({ w = 240, h = 139, value = 0, stroke = 7, color = "var(--ink)"
 /* ---------- Charts (monochrome: halo blue is kept for progress and friends, red for alerts) ---------- */
 
 function lineBand({ values, lo, hi, w = 321, h = 92, min, max, flagHigh = false, dots = true, color = "var(--ink)" }) {
-  min = min ?? Math.min(lo, ...values) - 2;
-  max = max ?? Math.max(hi, ...values) + 2;
+  const real = values.filter((v) => v != null);
+  min = min ?? Math.min(lo, ...real) - 2;
+  max = max ?? Math.max(hi, ...real) + 2;
   const pad = 6;
   const x = (i) => pad + (i / (values.length - 1)) * (w - pad * 2);
   const y = (v) => pad + (1 - (v - min) / (max - min)) * (h - pad * 2);
-  const line = values.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join("");
+  // A night without a clear reading (null) breaks the line and is marked, never filled in.
+  let pen = false;
+  const line = values.map((v, i) => {
+    if (v == null) { pen = false; return ""; }
+    const seg = `${pen ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`;
+    pen = true;
+    return seg;
+  }).join("");
+  const gaps = values.map((v, i) => v == null
+    ? `<line x1="${x(i).toFixed(1)}" x2="${x(i).toFixed(1)}" y1="${pad}" y2="${h - pad}" stroke="var(--faint)" stroke-width="1.2" stroke-dasharray="2 3"/>` : "").join("");
   const out = (v) => flagHigh && v > hi;
   const pts = values.map((v, i) => {
-    const last = i === values.length - 1;
+    if (v == null) return "";
     const c = out(v) ? "var(--alert)" : color;
-    if (last) return `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="5" fill="${c}" stroke="#fff" stroke-width="2.5"/>`;
+    if (i === values.length - 1) return `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="5" fill="${c}" stroke="var(--dot-ring)" stroke-width="2.5"/>`;
     return dots ? `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${out(v) ? 3.4 : 2.2}" fill="${c}"/>` : "";
   }).join("");
-  const firstOut = flagHigh ? values.findIndex((v) => v > hi) : -1;
+  const firstOut = flagHigh ? values.findIndex((v) => v != null && v > hi) : -1;
   const redTail = firstOut > 0 ? `<path d="${values.slice(firstOut - 1).map((v, j) => `${j ? "L" : "M"}${x(firstOut - 1 + j).toFixed(1)} ${y(v).toFixed(1)}`).join("")}" fill="none" stroke="var(--alert)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : "";
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible">
     <rect x="0" y="${y(hi).toFixed(1)}" width="${w}" height="${(y(lo) - y(hi)).toFixed(1)}" rx="6" fill="var(--band)"/>
+    ${gaps}
     <path d="${line}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity="${flagHigh ? .9 : 1}"/>
     ${redTail}${pts}
   </svg>`;
@@ -158,10 +172,10 @@ function bars({ values, labels = [], w = 321, h = 120, max, lo, hi, hl = values.
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible">${band}
     ${values.map((v, i) => {
       const x = i * (bw + gap), bh = Math.max(3, (v / max) * ch);
-      const fill = i === hl ? "var(--ink)" : low.includes(i) ? "#b9b8b3" : "#cfcec9";
+      const fill = i === hl ? "var(--ink)" : low.includes(i) ? "var(--bar-2)" : "var(--bar)";
       return `<rect x="${x.toFixed(1)}" y="${(top + ch - bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="${Math.min(6, bw / 2).toFixed(1)}" fill="${fill}"/>`
-        + (showVal ? `<text x="${(x + bw / 2).toFixed(1)}" y="${(top + ch - bh - 6).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="${i === hl ? 600 : 450}" fill="${i === hl ? "#111" : "#8e8e93"}">${fmt(v)}</text>` : "")
-        + (labels[i] ? `<text x="${(x + bw / 2).toFixed(1)}" y="${h - 4}" text-anchor="middle" font-size="11" fill="${i === hl ? "#111" : "#a1a1a6"}" font-weight="${i === hl ? 600 : 450}">${labels[i]}</text>` : "");
+        + (showVal ? `<text x="${(x + bw / 2).toFixed(1)}" y="${(top + ch - bh - 6).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="${i === hl ? 600 : 450}" fill="${i === hl ? "var(--ink)" : "var(--muted)"}">${fmt(v)}</text>` : "")
+        + (labels[i] ? `<text x="${(x + bw / 2).toFixed(1)}" y="${h - 4}" text-anchor="middle" font-size="11" fill="${i === hl ? "var(--ink)" : "var(--faint)"}" font-weight="${i === hl ? 600 : 450}">${labels[i]}</text>` : "");
     }).join("")}
   </svg>`;
 }
@@ -172,16 +186,16 @@ function timeline24(segs, { w = 321, start = 18 } = {}) {
   const ticks = [0, 6, 12, 18, 24].map((t) => [t, `${String((start + t) % 24).padStart(2, "0")}:00`]);
   return `<svg width="${w}" height="64" viewBox="0 0 ${w} 64" style="overflow:visible">
     <rect x="0" y="10" width="${w}" height="30" rx="9" fill="var(--track)"/>
-    ${segs.map(([a, b, kind]) => `<rect x="${x(a).toFixed(1)}" y="${kind === "nap" ? 16 : 10}" width="${(x(b) - x(a)).toFixed(1)}" height="${kind === "nap" ? 18 : 30}" rx="${kind === "nap" ? 5 : 8}" fill="${kind === "nap" ? "#8f8f94" : "var(--ink)"}"/>`).join("")}
-    ${segs.filter((s) => s[2] === "wake").map(([a]) => `<rect x="${(x(a) - 1).toFixed(1)}" y="10" width="2" height="30" fill="#fff" opacity=".9"/>`).join("")}
-    ${ticks.map(([t, l], i) => `<text x="${x(t).toFixed(1)}" y="58" font-size="10.5" fill="#a1a1a6" text-anchor="${i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"}">${l}</text>`).join("")}
+    ${segs.map(([a, b, kind]) => `<rect x="${x(a).toFixed(1)}" y="${kind === "nap" ? 16 : 10}" width="${(x(b) - x(a)).toFixed(1)}" height="${kind === "nap" ? 18 : 30}" rx="${kind === "nap" ? 5 : 8}" fill="${kind === "nap" ? "var(--nap)" : "var(--ink)"}"/>`).join("")}
+    ${segs.filter((s) => s[2] === "wake").map(([a]) => `<rect x="${(x(a) - 1).toFixed(1)}" y="10" width="2" height="30" fill="var(--dot-ring)" opacity=".9"/>`).join("")}
+    ${ticks.map(([t, l], i) => `<text x="${x(t).toFixed(1)}" y="58" font-size="10.5" fill="var(--faint)" text-anchor="${i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"}">${l}</text>`).join("")}
   </svg>`;
 }
 
 // Stacked hourly activity: rows of [easy, brisk, play] minutes, 06:00 → 22:00.
 function hourly(rows, { w = 321, h = 96 } = {}) {
   const n = rows.length, gap = 4, bw = (w - gap * (n - 1)) / n, max = 40, ch = h - 18;
-  const cols = ["#d9d8d3", "#8f8f94", "#111"];
+  const cols = ["var(--bar-3)", "var(--nap)", "var(--ink)"];
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
     ${rows.map((r, i) => {
       let yb = ch;
@@ -191,7 +205,7 @@ function hourly(rows, { w = 321, h = 96 } = {}) {
         return `<rect x="${(i * (bw + gap)).toFixed(1)}" y="${yb.toFixed(1)}" width="${bw.toFixed(1)}" height="${(bh - (yb > 0 ? .8 : 0)).toFixed(1)}" rx="2" fill="${cols[k]}"/>`;
       }).join("");
     }).join("")}
-    ${[[0, "06"], [6, "12"], [12, "18"], [16, "22"]].map(([i, l]) => `<text x="${(i * (bw + gap) + bw / 2).toFixed(1)}" y="${h - 2}" font-size="10.5" fill="#a1a1a6" text-anchor="middle">${l}</text>`).join("")}
+    ${[[0, "06"], [6, "12"], [12, "18"], [16, "22"]].map(([i, l]) => `<text x="${(i * (bw + gap) + bw / 2).toFixed(1)}" y="${h - 2}" font-size="10.5" fill="var(--faint)" text-anchor="middle">${l}</text>`).join("")}
   </svg>`;
 }
 
@@ -203,13 +217,13 @@ function trendLine({ values, w = 321, h = 120, min = 60, max = 95, tags = [], la
   const d = values.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join("");
   const area = `${d}L${x(values.length - 1).toFixed(1)} ${ch}L${x(0).toFixed(1)} ${ch}Z`;
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible">
-    <defs><linearGradient id="tl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111" stop-opacity=".1"/><stop offset="1" stop-color="#111" stop-opacity="0"/></linearGradient></defs>
-    ${tags.map(([a, b, l]) => `<rect x="${(x(a) - 3).toFixed(1)}" y="0" width="${(x(b) - x(a) + 6).toFixed(1)}" height="${ch}" rx="5" fill="#f1efe9"/><line x1="${(x(a) - 3).toFixed(1)}" x2="${(x(a) - 3).toFixed(1)}" y1="0" y2="${ch}" stroke="#d9d6cd" stroke-dasharray="2 3"/><text x="${(x(a) + 2).toFixed(1)}" y="12" font-size="10.5" font-weight="600" fill="#8b8778">${l}</text>`).join("")}
+    <defs><linearGradient id="tl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--ink)" stop-opacity=".1"/><stop offset="1" stop-color="var(--ink)" stop-opacity="0"/></linearGradient></defs>
+    ${tags.map(([a, b, l]) => `<rect x="${(x(a) - 3).toFixed(1)}" y="0" width="${(x(b) - x(a) + 6).toFixed(1)}" height="${ch}" rx="5" fill="var(--tag-bg)"/><line x1="${(x(a) - 3).toFixed(1)}" x2="${(x(a) - 3).toFixed(1)}" y1="0" y2="${ch}" stroke="var(--tag-line)" stroke-dasharray="2 3"/><text x="${(x(a) + 2).toFixed(1)}" y="12" font-size="10.5" font-weight="600" fill="var(--tag-text)">${l}</text>`).join("")}
     <path d="${area}" fill="url(#tl)"/>
-    <path d="${d}" fill="none" stroke="#111" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${x(values.length - 1).toFixed(1)}" cy="${y(values[values.length - 1]).toFixed(1)}" r="4.5" fill="#111" stroke="#fff" stroke-width="2.5"/>
+    <path d="${d}" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${x(values.length - 1).toFixed(1)}" cy="${y(values[values.length - 1]).toFixed(1)}" r="4.5" fill="var(--ink)" stroke="var(--dot-ring)" stroke-width="2.5"/>
     <line x1="0" x2="${w}" y1="${ch}" y2="${ch}" stroke="var(--line)"/>
-    ${labels.map(([i, l]) => `<text x="${x(i).toFixed(1)}" y="${h - 4}" font-size="10.5" fill="#a1a1a6" text-anchor="${i === 0 ? "start" : i === values.length - 1 ? "end" : "middle"}">${l}</text>`).join("")}
+    ${labels.map(([i, l]) => `<text x="${x(i).toFixed(1)}" y="${h - 4}" font-size="10.5" fill="var(--faint)" text-anchor="${i === 0 ? "start" : i === values.length - 1 ? "end" : "middle"}">${l}</text>`).join("")}
   </svg>`;
 }
 
@@ -224,7 +238,7 @@ function rangeBar(value, lo, hi, min, max) {
 
 function mapSvg({ w = 393, h = 852, route = true } = {}) {
   const trees = [[40, 140, 16], [92, 120, 11], [262, 128, 14], [300, 170, 10], [70, 420, 15], [250, 420, 12], [300, 470, 16], [40, 520, 12], [180, 470, 10], [320, 330, 11], [140, 200, 9], [210, 175, 12]];
-  return `<svg width="${w}" height="${h}" viewBox="0 0 393 852" preserveAspectRatio="xMidYMid slice">
+  return `<svg class="map-svg" width="${w}" height="${h}" viewBox="0 0 393 852" preserveAspectRatio="xMidYMid slice">
     <rect width="393" height="852" fill="#f1f0ec"/>
     ${[[0, 0, 70, 58], [78, 0, 96, 58], [182, 0, 64, 58], [254, 0, 92, 58], [354, 0, 60, 58], [388, 90, 20, 120], [388, 220, 20, 150], [388, 380, 20, 160], [0, 668, 80, 90], [88, 668, 110, 90], [206, 668, 130, 90], [344, 668, 60, 90], [0, 766, 120, 90], [128, 766, 140, 90], [276, 766, 130, 90]].map(([x, y, bw, bh]) => `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="4" fill="#e7e5df"/>`).join("")}
     <rect x="-10" y="80" width="372" height="572" rx="10" fill="#e1e8da"/>
@@ -263,7 +277,7 @@ function mapSvg({ w = 393, h = 852, route = true } = {}) {
 
 function screen({ id, body = "", dark = false, tabs = null, raw = false, overlay = "", lightStatus = false, statusTime = true, cls = "" }) {
   return `
-  <div class="scr ${dark ? "scr--dark" : ""} ${tabs ? "scr--tabs" : ""} ${cls}" data-screen="${id}">
+  <div class="scr ${dark ? "scr--dark" : ""} ${THEME === "dark" ? "theme-dark" : ""} ${tabs ? "scr--tabs" : ""} ${cls}" data-screen="${id}">
     ${raw ? body : `<div class="scr__body">${body}</div>`}
     ${tabs ? tabBar(tabs) : ""}
     ${overlay}

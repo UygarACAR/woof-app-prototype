@@ -19,6 +19,10 @@ const D = {
   hours: [[0, 0, 0], [6, 14, 2], [4, 6, 3], [2, 0, 0], [0, 0, 0], [3, 0, 0], [0, 0, 0], [5, 0, 1], [2, 0, 0], [0, 0, 0], [3, 0, 0], [0, 0, 0], [6, 4, 3], [5, 0, 0], [3, 0, 0], [2, 0, 0], [0, 0, 0]],
 };
 
+// Vitals with gaps: 8 Nov too loose to read, last night (12–13 Nov) collar off.
+D.hrGap = D.hr30.map((v, i) => (i === 24 || i === 29 ? null : v));
+D.rrGap = D.rr30.map((v, i) => (i === 24 || i === 29 ? null : v));
+
 const hm = (h) => `${Math.floor(h)} h ${String(Math.round((h % 1) * 60)).padStart(2, "0")} m`;
 
 /* ---------- Shared bits ---------- */
@@ -33,7 +37,7 @@ const header = (eyebrow, title, right = avatar("milo", "av--ring")) => `
   </div>`;
 
 const haloPill = (state = "white") => {
-  const s = { white: ["", "All good", "#111"], blue: ["pill--blue", "Friend nearby", "var(--halo-blue)"], red: ["pill--alert", "Worth a check", "var(--alert)"] }[state];
+  const s = { white: ["", "All good", "var(--ink)"], blue: ["pill--blue", "Friend nearby", "var(--halo-blue)"], red: ["pill--alert", "Worth a check", "var(--alert)"] }[state];
   return `<span class="pill ${s[0]}"><span class="halo-glyph" style="color:${s[2]};width:18px;height:11px"></span>Halo · ${s[1]}</span>`;
 };
 
@@ -73,7 +77,7 @@ def("profile", "Onboarding", "Add your dog",
       <div style="display:flex;flex-direction:column;align-items:center;margin:36px 0 34px">
         <div style="position:relative">
           ${avatar("milo", "av--xl")}
-          <span style="position:absolute;right:-2px;bottom:2px;width:34px;height:34px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;box-shadow:0 0 0 3px #fff">${icon("camera", 17)}</span>
+          <span style="position:absolute;right:-2px;bottom:2px;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--on-ink);display:grid;place-items:center;box-shadow:0 0 0 3px var(--paper)">${icon("camera", 17)}</span>
         </div>
         <span class="small" style="margin-top:12px">Change photo</span>
       </div>
@@ -94,7 +98,7 @@ def("details", "Onboarding", "About your dog",
         <div class="field"><span>Breed</span><b>Jack Russell Terrier ${I.chev}</b></div>
         <div class="field"><span>Birthday</span><b>March 2021 <span class="muted" style="font-weight:400">· 5 yrs</span></b></div>
         <div class="field"><span>Weight</span><b>7.2 kg</b></div>
-        <div class="field"><span>Sex</span><div class="seg" style="width:170px;background:#e9e8e4"><span class="is-on">Male</span><span>Female</span></div></div>
+        <div class="field"><span>Sex</span><div class="seg" style="width:170px;background:var(--stone)"><span class="is-on">Male</span><span>Female</span></div></div>
         <div class="field"><span>Neutered</span><span class="tg is-on"></span></div>
       </div>
     </div>
@@ -165,14 +169,14 @@ def("fit", "Onboarding", "Fit check",
   () => screen({ id: "fit", body: `
     ${navBar({ back: "Back", backTo: "paired", title: "Fit the collar" })}
     <div class="pad" style="margin-top:8px">
-      <div style="position:relative;height:250px;border-radius:24px;overflow:hidden;background:#eceae6">
+      <div style="position:relative;height:250px;border-radius:24px;overflow:hidden;background:var(--stone)">
         <img src="${A}/product/collar-system-olive.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 62%">
         <span style="position:absolute;left:192px;top:150px;width:26px;height:26px;border-radius:50%;background:#111;color:#fff;font-size:12.5px;font-weight:600;display:grid;place-items:center;box-shadow:0 0 0 4px rgba(255,255,255,.75)">1</span>
         <span style="position:absolute;left:58px;top:192px;width:26px;height:26px;border-radius:50%;background:#111;color:#fff;font-size:12.5px;font-weight:600;display:grid;place-items:center;box-shadow:0 0 0 4px rgba(255,255,255,.75)">2</span>
       </div>
       <div style="margin-top:18px">
-        <div class="driver"><span class="driver__ico flat" style="background:var(--mist);color:#111">1</span><div><b>Under the neck</b><span>Module resting under Milo's chin, wordmark facing out.</span></div><span></span></div>
-        <div class="driver"><span class="driver__ico flat" style="background:var(--mist);color:#111">2</span><div><b>Snug, not tight</b><span>Two fingers should slide under the band.</span></div><span></span></div>
+        <div class="driver"><span class="driver__ico flat" style="background:var(--mist);color:var(--ink)">1</span><div><b>Under the neck</b><span>Module resting under Milo's chin, wordmark facing out.</span></div><span></span></div>
+        <div class="driver"><span class="driver__ico flat" style="background:var(--mist);color:var(--ink)">2</span><div><b>Snug, not tight</b><span>Two fingers should slide under the band.</span></div><span></span></div>
       </div>
       <div class="card" style="display:flex;align-items:center;gap:16px;margin-top:12px">
         ${capsule({ w: 74, h: 43, value: 100, stroke: 4, halo: true, text: icon("check", 20), size: 16 })}
@@ -211,8 +215,8 @@ def("ready", "Onboarding", "Learning period",
           ["Days 7 to 10", "Resting heart rate and sleeping breathing rate", false],
           ["Day 14", "Alerts switch on, once his baseline is steady", false]].map(([d, t, on]) => `
           <div style="position:relative;padding:0 0 16px">
-            <span style="position:absolute;left:-27px;top:4px;width:12px;height:12px;border-radius:50%;background:${on ? "#111" : "#fff"};box-shadow:inset 0 0 0 2px #111"></span>
-            <p class="lbl" style="color:${on ? "#111" : "var(--faint)"}">${d}</p><p style="font-size:15px;margin-top:3px">${t}</p>
+            <span style="position:absolute;left:-27px;top:4px;width:12px;height:12px;border-radius:50%;background:${on ? "var(--ink)" : "var(--paper)"};box-shadow:inset 0 0 0 2px var(--ink)"></span>
+            <p class="lbl" style="color:${on ? "var(--ink)" : "var(--faint)"}">${d}</p><p style="font-size:15px;margin-top:3px">${t}</p>
           </div>`).join("")}
       </div>
     </div>
@@ -317,8 +321,8 @@ def("rest", "Today", "Rest",
       <div class="card" style="margin-top:18px;padding:18px 16px 12px">
         ${timeline24([[3.33, 4.5, "nap"], [6.08, 6.67, "nap"], [11.67, 21.25, "night"], [15.83, 15.83, "wake"], [18.58, 18.58, "wake"]], { start: 10 })}
         <div style="display:flex;gap:16px;margin-top:6px;font-size:12px;color:var(--muted)">
-          <span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:#111"></i>Night</span>
-          <span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:#8f8f94"></i>Naps</span>
+          <span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--ink)"></i>Night</span>
+          <span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--nap)"></i>Naps</span>
           <span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--track)"></i>Awake</span>
         </div>
       </div>
@@ -348,7 +352,7 @@ def("activity", "Today", "Activity",
       <div class="card" style="margin-top:18px">
         <p class="lbl">By intensity</p>
         <div style="display:flex;height:12px;border-radius:12px;overflow:hidden;margin-top:12px;gap:2px">
-          <span style="flex:41;background:#d9d8d3"></span><span style="flex:24;background:#8f8f94"></span><span style="flex:9;background:#111"></span>
+          <span style="flex:41;background:var(--bar-3)"></span><span style="flex:24;background:var(--nap)"></span><span style="flex:9;background:var(--ink)"></span>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:12px">
           <div><b class="num" style="font-size:17px;font-weight:450">41 min</b><p class="tiny" style="margin-top:2px">Easy</p></div>
@@ -375,7 +379,7 @@ def("vitals", "Today", "Vitals",
       <div class="card" style="margin-top:14px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div><p class="lbl" style="display:flex;align-items:center;gap:6px">${icon("heart", 13)}Resting heart rate</p><p class="big" style="margin-top:10px">62<small>bpm</small></p></div>
-          <span class="pill" style="background:#fff">Steady</span>
+          <span class="pill" style="background:var(--raised)">Steady</span>
         </div>
         <p class="small" style="margin-top:4px">Last night · his normal 56–70</p>
         <div style="margin-top:14px">${lineBand({ values: D.hr30, lo: 56, hi: 70, w: 321, h: 84, min: 50, max: 76 })}</div>
@@ -384,7 +388,7 @@ def("vitals", "Today", "Vitals",
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div><p class="lbl" style="display:flex;align-items:center;gap:6px">${icon("breath", 13)}Sleeping breathing rate</p><p class="big" style="margin-top:10px">16<small>breaths / min</small></p></div>
-          <span class="pill" style="background:#fff">Steady</span>
+          <span class="pill" style="background:var(--raised)">Steady</span>
         </div>
         <p class="small" style="margin-top:4px">Last night · his normal 13–19</p>
         <div style="margin-top:14px">${lineBand({ values: D.rr30, lo: 13, hi: 19, w: 321, h: 84, min: 10, max: 22 })}</div>
@@ -431,9 +435,9 @@ def("lock", "Alerts", "Lock screen",
     <div style="position:absolute;left:10px;right:10px;bottom:120px;display:grid;gap:8px">
       ${[["Worth a check", "2h ago", "Milo's sleeping breathing rate has been above his normal for 3 nights. See what changed."],
         ["Milo's morning · 72", "2h ago", "He rested close to his usual, but his breathing rate was higher overnight."]].map(([t, time, b], i) => `
-        <div ${i === 0 ? 'data-go="alert"' : ""} style="display:flex;gap:11px;padding:13px 14px;border-radius:22px;background:rgba(246,246,246,.78);backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);color:#111;${i ? "transform:scale(.96);opacity:.92" : ""}">
+        <div ${i === 0 ? 'data-go="alert"' : ""} style="display:flex;gap:11px;padding:13px 14px;border-radius:22px;background:var(--notif-bg);backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);color:var(--ink);${i ? "transform:scale(.96);opacity:.92" : ""}">
           ${appIcon(38)}
-          <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;font-size:15px;font-weight:600;letter-spacing:-.02em"><span>${t}</span><span style="font-weight:400;font-size:13px;color:rgba(0,0,0,.45)">${time}</span></div>
+          <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;font-size:15px;font-weight:600;letter-spacing:-.02em"><span>${t}</span><span style="font-weight:400;font-size:13px;color:var(--notif-time)">${time}</span></div>
           <p style="font-size:14.5px;line-height:1.35;margin-top:2px;letter-spacing:-.015em">${b}</p></div>
         </div>`).join("")}
     </div>
@@ -517,7 +521,7 @@ def("chat", "Ask", "Conversation",
     <div class="pad" style="margin-top:10px">
       <div class="msg msg--me">Why was his score lower on Tuesday?</div>
       <div class="msg" style="margin-top:10px">Tuesday's score was <b>71</b>. Two things moved it: he rested <b>1 h 30 m less</b> than usual after a late evening, and he was <b>40% less active</b> than his normal. His heart and breathing rates stayed in range.
-        <div style="margin-top:12px;background:#fff;border-radius:14px;padding:12px 10px 8px">${bars({ values: D.scoreWeek, labels: D.week, w: 252, h: 92, max: 100, hl: 4, showVal: true })}</div>
+        <div style="margin-top:12px;background:var(--raised);border-radius:14px;padding:12px 10px 8px">${bars({ values: D.scoreWeek, labels: D.week, w: 252, h: 92, max: 100, hl: 4, showVal: true })}</div>
       </div>
       <span class="src">${icon("check", 12)}From Milo's data · 6–12 Nov</span>
       <div class="msg msg--me">Should I walk him more?</div>
@@ -555,8 +559,8 @@ const mapScene = (extra = "") => `
   <div style="position:absolute;left:186px;top:312px;margin:-23px 0 0 -23px">${avatar("milo", "av--ring", 46)}</div>
   <div style="position:absolute;left:236px;top:258px;margin:-18px 0 0 -18px">${avatar("bella", "av--blue", 36)}</div>
   <div style="position:absolute;top:60px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center">
-    <span class="pill" style="background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.08);height:36px;padding:0 14px"><span style="width:8px;height:8px;border-radius:50%;background:#111;box-shadow:0 0 0 3px rgba(17,17,17,.15)"></span>Live · GPS</span>
-    <span style="display:flex;flex-direction:column;border-radius:14px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.08)">
+    <span class="pill" style="background:var(--raised);box-shadow:0 4px 16px rgba(0,0,0,.08);height:36px;padding:0 14px"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 3px rgba(17,17,17,.15)"></span>Live · GPS</span>
+    <span style="display:flex;flex-direction:column;border-radius:14px;background:var(--raised);box-shadow:0 4px 16px rgba(0,0,0,.08)">
       <span style="width:44px;height:44px;display:grid;place-items:center">${icon("layers", 20)}</span><span style="height:1px;background:var(--line);margin:0 8px"></span><span style="width:44px;height:44px;display:grid;place-items:center">${icon("locate", 18)}</span>
     </span>
   </div>${extra}`;
@@ -589,7 +593,7 @@ def("friend", "Map & friends", "Woof friends",
         <span class="av av--lg av--blue" style="background-image:url(${A}/app/avatar-milo.jpg)"></span>
         <span class="av av--lg av--blue" style="margin-left:-14px;background-image:url(${A}/app/avatar-bella.jpg)"></span>
       </div>
-      <p class="lbl" style="margin-top:20px;color:#2f5be0">Better together</p>
+      <p class="lbl" style="margin-top:20px;color:var(--blue-text)">Better together</p>
       <h2 class="h1" style="margin-top:8px;font-size:28px">Milo met Bella</h2>
       <p class="p" style="margin-top:8px;padding:0 10px">They spent 18 minutes side by side in Hyde Park, and both halos turned blue.</p>
       <p class="small" style="margin-top:10px;padding:0 16px">Connect with Bella's family to see when they're nearby and how often they meet.</p>
@@ -606,9 +610,9 @@ def("device", "Woof", "Woof",
   () => screen({ id: "device", tabs: "woof", body: `
     ${header("Milo's collar", "Woof", "")}
     <div class="pad" style="margin-top:18px">
-      <div style="position:relative;height:196px;border-radius:24px;overflow:hidden;background:#eceae6">
+      <div style="position:relative;height:196px;border-radius:24px;overflow:hidden;background:var(--stone)">
         <img src="${A}/collars/white-titanium-knit-olive-detail.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 58%">
-        <span class="pill" style="position:absolute;left:12px;top:12px;background:rgba(255,255,255,.92)"><span style="width:7px;height:7px;border-radius:50%;background:var(--ok)"></span>Connected</span>
+        <span class="pill" style="position:absolute;left:12px;top:12px;background:var(--glass)"><span style="width:7px;height:7px;border-radius:50%;background:var(--ok)"></span>Connected</span>
         <span style="position:absolute;left:14px;bottom:12px;color:#fff;font-size:13px;font-weight:550;text-shadow:0 1px 10px rgba(0,0,0,.35)">White Titanium · Knit Olive</span>
       </div>
       <div class="grid2" style="margin-top:10px">
@@ -639,8 +643,8 @@ def("halo", "Woof", "Halo settings",
       </div>
       <div class="sec" style="margin-top:22px"><span class="lbl">Light states</span>
         <div class="list">
-          ${[["#111", "White", "All good", ""], ["var(--halo-blue)", "Blue", "A Woof friend is nearby", ""], ["var(--halo-red)", "Red", "Something is worth a check", "Recommended"]].map(([c, t, s]) => `
-            <div class="row"><span class="halo-glyph" style="color:${c};width:24px;height:14px;${c !== "#111" ? `box-shadow:0 0 8px ${c}` : ""}"></span><div class="row__t">${t}<small>${s}</small></div><span class="tg is-on"></span></div>`).join("")}
+          ${[["var(--ink)", "White", "All good", ""], ["var(--halo-blue)", "Blue", "A Woof friend is nearby", ""], ["var(--halo-red)", "Red", "Something is worth a check", "Recommended"]].map(([c, t, s]) => `
+            <div class="row"><span class="halo-glyph" style="color:${c};width:24px;height:14px;${c !== "var(--ink)" ? `box-shadow:0 0 8px ${c}` : ""}"></span><div class="row__t">${t}<small>${s}</small></div><span class="tg is-on"></span></div>`).join("")}
         </div>
       </div>
       <div class="sec" style="margin-top:22px"><span class="lbl">Brightness</span><div class="seg"><span>Low</span><span class="is-on">Auto</span><span>High</span></div></div>
@@ -656,7 +660,7 @@ def("membership", "Woof", "Membership",
   () => screen({ id: "membership", body: `
     ${navBar({ back: "Woof", backTo: "device", title: "Membership" })}
     <div class="pad" style="margin-top:6px">
-      <div style="position:relative;border-radius:24px;background:#0b0b0c;color:#fff;padding:22px 20px;overflow:hidden">
+      <div style="position:relative;border-radius:24px;background:#0b0b0c;color:#fff;padding:22px 20px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--card-edge)">
         <svg width="260" height="150" viewBox="0 0 260 150" style="position:absolute;right:-70px;top:-30px;opacity:.16"><path d="${capsulePath(260, 150, 6)}" fill="none" stroke="#fff" stroke-width="2"/></svg>
         <img src="${ASSETS}logo/woof-white.svg" alt="" style="height:12px">
         <p class="h2" style="margin-top:26px;color:#fff">Woof Membership</p>
@@ -672,7 +676,152 @@ def("membership", "Woof", "Membership",
       </div>
       <div class="card" style="margin-top:10px;display:flex;gap:14px;align-items:center">
         <span class="halo-glyph" style="color:var(--halo-blue);width:28px;height:17px;box-shadow:0 0 10px var(--halo-blue)"></span>
-        <div style="flex:1"><p style="font-size:15px;font-weight:550">Better Together</p><p class="small">Woof friends and the blue halo.</p></div><span class="pill" style="background:#fff">Coming soon</span>
+        <div style="flex:1"><p style="font-size:15px;font-weight:550">Better Together</p><p class="small">Woof friends and the blue halo.</p></div><span class="pill" style="background:var(--raised)">Coming soon</span>
       </div>
       <p style="text-align:center;margin:20px 0 28px"><span class="link" style="font-size:14.5px">Manage on woof.com</span></p>
     </div>` }));
+
+/* =================================================================
+   STATES (when something is missing or the collar needs attention)
+   ================================================================= */
+
+def("today-nodata", "States", "Today · no score",
+  "",
+  () => screen({ id: "today-nodata", tabs: "today", body: `
+    ${header("Friday 13 November", "Milo")}
+    <div style="display:flex;flex-direction:column;align-items:center;margin-top:20px">
+      ${capsule({ w: 236, h: 137, value: 0, stroke: 7, halo: true, logo: 8, text: "–", size: 42, label: "No score today" })}
+      <p class="small" style="margin-top:14px">Not enough data from last night</p>
+    </div>
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:14px">
+      <span class="pill">${icon("moon", 15)}Off 22:10 – 07:30</span><span class="pill">${icon("sync", 15)}Synced 2 min ago</span>
+    </div>
+    <div class="pad" style="margin-top:20px">
+      <div class="card">
+        <p class="lbl">Why there's no score</p>
+        <p class="p" style="margin-top:8px">Milo's Woof was off from 22:10 to 07:30, so it missed most of his night. Rather than guess, Woof skips today's score. His activity still counts.</p>
+        <div class="row" style="border:0;min-height:0;padding:14px 0 2px"><span class="row__ico">${icon("bell", 17)}</span><div class="row__t" style="font-size:14.5px">Bedtime reminder<small>A nudge at 21:30 if Woof isn't on</small></div><span class="tg"></span></div>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <div class="card"><p class="lbl">Rest · 24 h</p><p class="mid" style="margin-top:10px">–</p><p class="tiny" style="margin-top:12px">2 h 10 m recorded, not enough for a total</p></div>
+        <div class="card"><p class="lbl">Activity · today</p><p class="mid" style="margin-top:10px">22<small>min</small></p><div style="margin-top:12px">${haloMeter(24)}</div><p class="tiny" style="margin-top:8px">Since 07:30</p></div>
+      </div>
+      <div class="card" data-go="vitals-gap">
+        <p class="lbl">Vitals · last night</p>
+        <p class="p" style="margin-top:8px;font-size:14.5px">No readings while the collar was off.</p>
+        <p style="margin-top:10px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px">See vitals ${icon("arrow", 15)}</p>
+      </div>
+    </div>` }));
+
+const vitalsGapCard = (ic, title, v, lo, hi, min, max) => `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div><p class="lbl" style="display:flex;align-items:center;gap:6px">${icon(ic, 13)}${title}</p><p class="big" style="margin-top:10px" aria-label="No reading">—</p></div>
+          <span class="pill" style="background:var(--raised)">No reading</span>
+        </div>
+        <p class="small" style="margin-top:4px">Last night · collar off</p>
+        <div style="margin-top:14px">${lineBand({ values: v, lo, hi, w: 321, h: 84, min, max })}</div>
+        <div class="legend"><span>15 Oct</span><span>13 Nov</span></div>
+      </div>`;
+
+def("vitals-gap", "States", "Vitals · gaps",
+  "",
+  () => screen({ id: "vitals-gap", body: `
+    ${navBar({ back: "Today", backTo: "today-nodata", title: "Vitals" })}
+    <div class="pad" style="margin-top:6px">
+      <div class="seg"><span>14 nights</span><span class="is-on">30 nights</span><span>3 months</span></div>
+      <div style="margin-top:14px">${vitalsGapCard("heart", "Resting heart rate", D.hrGap, 56, 70, 50, 76)}</div>
+      ${vitalsGapCard("breath", "Sleeping breathing rate", D.rrGap, 13, 19, 10, 22)}
+      <div class="card card--white" style="margin-top:10px">
+        <div style="display:flex;gap:12px">
+          <span class="row__ico" style="background:var(--mist)">${icon("fit", 18)}</span>
+          <div style="flex:1"><p class="h3">8 Nov: too loose to read</p><p class="small" style="margin-top:4px">Woof reads vitals while Milo is still. When the collar sits loose, readings get noisy, so Woof leaves the night blank rather than guess.</p></div>
+        </div>
+        <button class="btn btn--sm btn--ghost" style="margin-top:14px;width:100%" data-go="fit">Check the fit</button>
+      </div>
+    </div>` }));
+
+def("sync", "States", "Couldn't sync",
+  "",
+  () => screen({ id: "sync", tabs: "today", body: `
+    ${header("Friday 13 November", "Milo")}
+    <div style="display:flex;flex-direction:column;align-items:center;margin-top:20px">
+      ${capsule({ w: 236, h: 137, value: 86, stroke: 7, halo: true, logo: 8, unit: "%", size: 42, label: "Yesterday" })}
+      <p class="small" style="margin-top:14px">Waiting for last night's data</p>
+    </div>
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:14px">
+      <span class="pill">${icon("sync", 15)}Last synced 9 h ago</span>
+    </div>`,
+    overlay: `<div class="dim" data-go="today"></div>
+    <div class="sheet">
+      <div class="sheet__grab"></div>
+      <h2 class="h2">Couldn't reach Milo's Woof</h2>
+      <p class="small" style="margin-top:6px;font-size:14px">It last synced 9 hours ago. Woof keeps recording in the meantime, so nothing is lost.</p>
+      <div class="list" style="margin-top:16px">
+        <div class="row"><span class="row__ico">${icon("pin", 18)}</span><div class="row__t">Bring your phone close to Milo<small>Within a few metres</small></div></div>
+        <div class="row"><span class="row__ico">${icon("bt", 18)}</span><div class="row__t">Check Bluetooth is on<small>Settings › Bluetooth</small></div></div>
+        <div class="row"><span class="row__ico">${icon("battery", 18)}</span><div class="row__t">Check Woof has battery<small>Last seen at 64%</small></div></div>
+      </div>
+      <button class="btn" style="margin-top:18px" data-go="today">Try again</button>
+    </div>` }));
+
+def("battery-low", "States", "Low battery",
+  "",
+  () => screen({ id: "battery-low", tabs: "woof", body: `
+    ${header("Milo's collar", "Woof", "")}
+    <div class="pad" style="margin-top:18px">
+      <div style="position:relative;height:196px;border-radius:24px;overflow:hidden;background:var(--stone)">
+        <img src="${A}/collars/white-titanium-knit-olive-detail.jpg" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 58%">
+        <span class="pill" style="position:absolute;left:12px;top:12px;background:var(--glass)">${icon("battery", 15)}Low battery</span>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <div class="card" data-go="charging"><p class="lbl">Battery</p><p class="mid" style="margin-top:8px">12<small>%</small></p><div style="margin-top:10px">${haloMeter(12)}</div><p class="tiny" style="margin-top:8px">About a day left</p></div>
+        <div class="card"><p class="lbl">Last sync</p><p class="mid" style="margin-top:8px;font-size:22px">2 min ago</p><p class="tiny" style="margin-top:8px">Software 1.4.2</p></div>
+      </div>
+      <div class="card card--white" style="margin-top:10px">
+        <p class="h3">Charge it this afternoon</p>
+        <p class="small" style="margin-top:4px">Charged now, it's back on Milo before bedtime, and Woof can still read his sleep tonight.</p>
+        <button class="btn btn--sm" style="margin-top:14px;width:100%" data-go="charging">${icon("bell", 16)}Remind me at 15:00</button>
+      </div>
+    </div>` }));
+
+def("charging", "States", "Charging",
+  "",
+  () => screen({ id: "charging", body: `
+    ${navBar({ back: "Woof", backTo: "device", title: "Charging" })}
+    <div class="pad" style="margin-top:6px">
+      <div style="position:relative;height:210px;border-radius:24px;overflow:hidden;background:var(--stone)">
+        <img src="${A}/product/dock-white-side.jpg" alt="Milo's Woof on its wireless dock" style="width:100%;height:100%;object-fit:cover;object-position:50% 62%">
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;margin-top:22px">
+        ${capsule({ w: 200, h: 116, value: 64, stroke: 6, halo: true, logo: 7, unit: "%", size: 36, label: "Charging" })}
+        <p class="small" style="margin-top:14px;text-align:center;padding:0 24px">Put it back on Milo before bedtime, so Woof can read his sleep tonight.</p>
+      </div>
+      <div class="list" style="margin-top:20px">
+        <div class="row"><span class="row__ico">${icon("bell", 18)}</span><div class="row__t">Tell me when it's full</div><span class="tg is-on"></span></div>
+        <div class="row" data-go="update"><span class="row__ico">${icon("chip", 18)}</span><div class="row__t">Software 1.5.0 is ready<small>Installs while it charges</small></div><span class="row__v" style="color:var(--ink);font-weight:500">Install</span>${I.chev}</div>
+      </div>
+    </div>` }));
+
+def("update", "States", "Software update",
+  "",
+  () => screen({ id: "update", body: `
+    ${navBar({ back: "Woof", backTo: "device", title: "Software update" })}
+    <div class="pad" style="margin-top:26px">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        ${capsule({ w: 236, h: 137, value: 58, stroke: 7, halo: true, logo: 8, unit: "%", size: 42, label: "Installing" })}
+        <p class="h3" style="margin-top:18px">Version 1.5.0</p>
+        <p class="small" style="margin-top:2px">About 2 minutes left</p>
+      </div>
+      <div class="card" style="margin-top:22px;display:flex;gap:12px;align-items:center">
+        <span class="row__ico">${icon("bt", 18)}</span>
+        <p class="small" style="flex:1;color:var(--ink-2)">Keep your phone close to Milo's Woof until it finishes. His data stays safe on the collar.</p>
+      </div>
+      <div class="sec"><span class="lbl">What's new</span>
+        <div class="list">
+          ${["Clearer breathing readings for small dogs", "Battery lasts longer between charges", "Faster sync in the morning"].map((t) =>
+            `<div class="row"><span style="color:var(--ink)">${icon("check", 18)}</span><div class="row__t">${t}</div></div>`).join("")}
+        </div>
+      </div>
+    </div>` }));
+

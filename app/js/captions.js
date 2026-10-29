@@ -28,4 +28,10 @@ const CAPTIONS = {
   "device": "The collar itself: battery, sync, halo and more.",
   "halo": "Choose what the halo light tells you.",
   "membership": "Everything the membership includes.",
+  "today-nodata": "No data, no score: if the collar was off, Woof says so instead of guessing.",
+  "vitals-gap": "Nights without clear readings stay blank, with a tip to fix the fit.",
+  "sync": "If the collar can't sync, Woof says what to check. Nothing is lost.",
+  "battery-low": "Low battery? Charge it by day, so Woof can still read his sleep.",
+  "charging": "Charging on the dock, with a nudge to put it back on before bed.",
+  "update": "Software updates arrive over Bluetooth while it charges.",
 };
